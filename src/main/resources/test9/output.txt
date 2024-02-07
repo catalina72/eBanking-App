@@ -1,0 +1,8 @@
+{"stocks":[],"accounts":[{"currencyName":"USD","amount":"1000.00"},{"currencyName":"EUR","amount":"0.00"}]}
+{"stocks":[],"accounts":[{"currencyName":"USD","amount":"900.00"},{"currencyName":"EUR","amount":"0.00"}]}
+{"stocks":[],"accounts":[{"currencyName":"USD","amount":"264.00"},{"currencyName":"EUR","amount":"400.00"}]}
+{"stocksToBuy":["MSFT","NFLX","META","GOOGL","GOOG","NVDA","AMZN"]}
+{"stocks":[{"stockname":"amzn","amount":10}],"accounts":[{"currencyName":"USD","amount":"8789.79"},{"currencyName":"EUR","amount":"400.00"}]}
+{"stocks":[{"stockname":"amzn","amount":10},{"stockname":"intc","amount":10}],"accounts":[{"currencyName":"USD","amount":"8313.39"},{"currencyName":"EUR","amount":"400.00"}]}
+Insufficient amount in account for buying premium option
+User with unknown.user@email.com doesn't exist
