@@ -9,7 +9,7 @@ public class User {
     private String lastName;
     private String address;
     private List<User> friends;
-    private Portofolio portofolio;
+    private Portfolio portfolio;
     private boolean premium;
     private List<String> notifications;
     public User(String email, String firstName, String lastName, String address) {
@@ -21,21 +21,22 @@ public class User {
         premium = false;
         notifications = new ArrayList<>();
     }
-    public void addPortfolio() {
-        this.portofolio = new Portofolio(this);
+    public void setPortfolio(Portfolio portfolio) {
+        this.portfolio = portfolio;
     }
     public String getEmail() {
         return email;
     }
     public boolean isPremium() { return premium; }
     public void printJson() {
-        System.out.print("{\"email\":\"" +  email + "\",\"firstname\":\"" + firstName + "\",\"lastname\":\"" + lastName + "\",\"address\":\"" + address + "\",\"friends\":[");
+        System.out.print("{\"email\":\"" +  email + "\",\"firstname\":\"" + firstName + "\",\"lastname\":\"" + lastName +
+                "\",\"address\":\"" + address + "\",\"friends\":[");
         if(friends != null)
-        for(int i = 0; i < friends.size(); i++) {
-            System.out.print("\"" + friends.get(i).email + "\"");
-            if(i != friends.size() - 1)
-                System.out.print(",");
-        }
+            for(int i = 0; i < friends.size(); i++) {
+                System.out.print("\"" + friends.get(i).email + "\"");
+                if(i != friends.size() - 1)
+                    System.out.print(",");
+            }
         System.out.println("]}");
     }
     public void buyPremium() {
@@ -44,7 +45,9 @@ public class User {
 
     @Override
     public boolean equals(Object obj) {
-        return email.equals(((User)obj).email);
+        if(email != null)
+            return email.equals(((User)obj).email);
+        return false;
     }
 
     public boolean isFriend(User user) {
@@ -59,8 +62,8 @@ public class User {
     public void addFriend(User user) {
         friends.add(user);
     }
-    public Portofolio getPortofolio() {
-        return portofolio;
+    public Portfolio getPortfolio() {
+        return portfolio;
     }
     public void getNotification(String notification) {
         notifications.add(notification);

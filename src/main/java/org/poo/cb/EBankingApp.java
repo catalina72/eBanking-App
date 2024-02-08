@@ -25,16 +25,16 @@ public class EBankingApp {
         return stockValue;
     }
     public void reset() {
-        users = new ArrayList<>();
-        stockValue = new HashMap<>();
-        recommendedStocks = new ArrayList<>();
+        users.clear();
+        stockValue.clear();
+        recommendedStocks.clear();
     }
     public void createUser(String email, String firstName, String lastName, String address) throws EmailAlreadyExistsException {
         if(findUser(email) != null) {
             throw new EmailAlreadyExistsException(email);
         }
         User user = new User(email, firstName, lastName, address);
-        user.addPortfolio();
+        user = new UserBuilder().withPortfolio(user, new Portfolio(user)).build();
         users.add(user);
     }
     private User findUser (String email) {
@@ -66,48 +66,45 @@ public class EBankingApp {
     }
     public void addAccount(String email, String currency) throws AccountAlreadyExistsException{
         User user = findUser(email);
-        if(user.getPortofolio().hasAccount(currency)) {
+        if(user.getPortfolio().hasAccount(currency)) {
             throw new AccountAlreadyExistsException(currency);
         }
-        user.getPortofolio().addAccount(currency);
+        user.getPortfolio().addAccount(currency);
     }
     public void addMoney(String email, String currency, Double value){
         User user = findUser(email);
-        Account account = user.getPortofolio().findAccount(currency);
+        Account account = user.getPortfolio().findAccount(currency);
         if(account != null) {
             AddMoneyCommand addMoney = new AddMoneyCommand(account, value);
             commandHistory.executeCommand(addMoney);
         }
     }
-    public void listPortofolio(String email) throws UserDoesntExistException {
+    public void listPortfolio(String email) throws UserDoesntExistException {
         User user = findUser(email);
         if(user == null)
             throw new UserDoesntExistException(email);
-        user.getPortofolio().printJson();
+        user.getPortfolio().printJson();
     }
 
     public void exchangeMoney(String email, String src, String dest, Double amount) throws InsufficientAmountException{
         User user = findUser(email);
-        Account srcAcc = user.getPortofolio().findAccount(src);
-        Account destAcc = user.getPortofolio().findAccount(dest);
+        Account srcAcc = user.getPortfolio().findAccount(src);
+        Account destAcc = user.getPortfolio().findAccount(dest);
         if(amount > srcAcc.getValue()) {
             throw new InsufficientAmountException(src);
         }
         Double rate = exchangeRates.get(dest).get(src);
-        //System.out.println(exchangeRates.get("EUR"));
-        Command exchangeMoney;
+        Command exchangeMoney = new ExchangeMoneyCommand(srcAcc, destAcc, rate, amount);
         if(user.isPremium())
-             exchangeMoney = new PremiumExchange(srcAcc, destAcc, rate, amount);
-        else
-             exchangeMoney = new ExchangeMoneyCommand(srcAcc, destAcc, rate, amount);
+            exchangeMoney = new PremiumExchangeCommand((ExchangeMoneyCommand) exchangeMoney);
         commandHistory.executeCommand(exchangeMoney);
     }
 
     public void transferMoney(String email, String friendEmail, String currency, Double amount) throws InsufficentAmountTransferException, NotFriendsException {
         User user = findUser(email);
         User friend = findUser(friendEmail);
-        Account srcAcc = user.getPortofolio().findAccount(currency);
-        Account destAcc = friend.getPortofolio().findAccount(currency);
+        Account srcAcc = user.getPortfolio().findAccount(currency);
+        Account destAcc = friend.getPortfolio().findAccount(currency);
         if(!user.isFriend(friend))
             throw new NotFriendsException(friendEmail);
         if(srcAcc.getValue() < amount)
@@ -119,17 +116,10 @@ public class EBankingApp {
     public void recommendStocks() {
         recommendedStocks = new ArrayList<>();
         for(Map.Entry<String, List<Double>> stock : stockValue.entrySet()) {
-            Double shortSMA = Double.parseDouble("0"), longSMA = Double.parseDouble("0");
-            for(int i = 0; i < 5; i++) {
-                longSMA += stock.getValue().get(i);
-            }
-            for(int i = 5; i < 10; i++) {
-                longSMA += stock.getValue().get(i);
-                shortSMA += stock.getValue().get(i);
-            }
-            shortSMA /= 5;
-            longSMA /= 10;
-            if(shortSMA > longSMA) {
+            Double shortSMA = calculateSMA(stock.getValue().subList(5, 10));
+            Double longSMA = calculateSMA(stock.getValue().subList(0, 10));
+
+            if (shortSMA > longSMA) {
                 recommendedStocks.add(stock.getKey());
             }
         }
@@ -142,26 +132,27 @@ public class EBankingApp {
             }
         System.out.println("]}");
     }
+    private Double calculateSMA(List<Double> values) {
+        return values.stream().mapToDouble(Double::doubleValue).sum() / values.size();
+    }
     public void buyStocks(String email, String companyName, Integer amount) throws InsufficientAmountStocksException{
         User user = findUser(email);
-        Account acc = user.getPortofolio().findAccount("USD");
+        Account acc = user.getPortfolio().findAccount("USD");
         Double rate = stockValue.get(companyName).getLast();
         if(acc.getValue() < rate * amount) {
             throw new InsufficientAmountStocksException();
         }
-        Command buyStocks;
+        Command buyStocks = new BuyStocksCommand(acc, companyName, amount, rate);
         if(user.isPremium())
-            buyStocks = new PremiumStocks(acc, companyName, amount, rate);
-        else
-            buyStocks = new BuyStocksCommand(acc, companyName, amount, rate);
+            buyStocks = new PremiumStocksCommand((BuyStocksCommand) buyStocks);
         commandHistory.executeCommand(buyStocks);
-        user.getPortofolio().buyStock(companyName, amount);
+        user.getPortfolio().buyStock(companyName, amount);
     }
     public void buyPremium(String email) throws UserDoesntExistException, InsufficientPremiumException {
         User user = findUser(email);
         if(user == null)
             throw new UserDoesntExistException(email);
-        Account acc = user.getPortofolio().findAccount("USD");
+        Account acc = user.getPortfolio().findAccount("USD");
         if(acc.getValue() < 100)
             throw new InsufficientPremiumException();
         acc.setValue(acc.getValue() - 100);

@@ -14,9 +14,6 @@ public class Main {
         if(args == null) {
             System.out.println("Running Main");
         } else if(args.length == 3) {
-            // 0 exchange rates
-            // 1 stockvalues
-            // 2 commands
             EBankingApp app = EBankingApp.getInstance();
 
             try {
@@ -38,6 +35,7 @@ public class Main {
                     }
                     exchangeRates.put(baseCurrency, rates);
                 }
+                fr.close();
             } catch (IOException | CsvException e) {
                 e.printStackTrace();
             }
@@ -55,6 +53,7 @@ public class Main {
                     }
                     stockValue.put(companyName, values);
                 }
+                fr.close();
             } catch (IOException | CsvException e) {
                 e.printStackTrace();
             }
@@ -68,88 +67,82 @@ public class Main {
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-                    while(line != null) {
-                        String[] tokens = line.split(" ");
-                        if(tokens[0].equals("CREATE") && tokens[1].equals("USER")) {
-                            String email = tokens[2];
-                            String firstName = tokens[3];
-                            String lastName = tokens[4];
-                            String address = getAddress(tokens);
-                            try {
-                                app.createUser(email, firstName, lastName, address);
-                            } catch (EmailAlreadyExistsException e) {}
-
-                        } else if(tokens[0].equals("LIST") && tokens[1].equals("USER")) {
-                            String email = tokens[2];
-                            try {
-                                app.listUser(email);
-                            } catch (UserDoesntExistException e) {}
-                        } else if(tokens[0].equals("ADD") && tokens[1].equals("FRIEND")) {
-                            String user = tokens[2];
-                            String friend = tokens[3];
-                            try {
-                                app.addFriend(user, friend);
-                            } catch (UserDoesntExistException | AlreadyFriendException e) {}
-                        } else if(tokens[0].equals("ADD") && tokens[1].equals("ACCOUNT")) {
-                            String email = tokens[2];
-                            String currency = tokens[3];
-                            try {
-                                app.addAccount(email, currency);
-                            } catch (AccountAlreadyExistsException e) {}
-                        } else if(tokens[0].equals("ADD") && tokens[1].equals("MONEY")) {
-                            String email = tokens[2];
-                            String currency = tokens[3];
-                            Double value = Double.parseDouble(tokens[4]);
-                            app.addMoney(email, currency, value);
-                        } else
-                            //System.out.println(tokens[0] + " " + tokens[1]);
-                            if(tokens[0].equals("LIST") && tokens[1].equals("PORTFOLIO")) {
-
-                            String email = tokens[2];
-                            try {
-                                app.listPortofolio(email);
-                            } catch(UserDoesntExistException e) {}
-                        } else if(tokens[0].equals("EXCHANGE") && tokens[1].equals("MONEY")) {
-                            String email = tokens[2];
-                            String sourceCurrency = tokens[3];
-                            String destinationCurrency = tokens[4];
-                            Double amount = Double.parseDouble(tokens[5]);
-                            try{
-                                app.exchangeMoney(email, sourceCurrency, destinationCurrency, amount);
-                            } catch(InsufficientAmountException e) {}
-                        } else if(tokens[0].equals("TRANSFER") && tokens[1].equals("MONEY")) {
-                            String email = tokens[2];
-                            String friendEmail = tokens[3];
-                            String currency = tokens[4];
-                            Double amount = Double.parseDouble(tokens[5]);
-                            try{
-                                app.transferMoney(email, friendEmail, currency, amount);
-                            } catch (InsufficentAmountTransferException | NotFriendsException e) {}
-                        } else if(tokens[0].equals("BUY") && tokens[1].equals("STOCKS")) {
-                            String email = tokens[2];
-                            String companyName = tokens[3];
-                            Integer noOfStocks = Integer.parseInt(tokens[4]);
-                            try{
-                                app.buyStocks(email, companyName, noOfStocks);
-                            } catch (InsufficientAmountStocksException e) {}
-
-                        } else if(tokens[0].equals("RECOMMEND") && tokens[1].equals("STOCKS")) {
-                                app.recommendStocks();
-                        } else if(tokens[0].equals("BUY") && tokens[1].equals("PREMIUM")) {
-                                String email = tokens[2];
-                                try {
-                                    app.buyPremium(email);
-                                } catch (UserDoesntExistException | InsufficientPremiumException e) {
-                                }
-                            }
-                                try {
-                            line = br.readLine();
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
+                while(line != null) {
+                    String[] tokens = line.split(" ");
+                    if(tokens[0].equals("CREATE") && tokens[1].equals("USER")) {
+                        String email = tokens[2];
+                        String firstName = tokens[3];
+                        String lastName = tokens[4];
+                        String address = getAddress(tokens);
+                        try {
+                            app.createUser(email, firstName, lastName, address);
+                        } catch (EmailAlreadyExistsException e) {}
+                    } else if(tokens[0].equals("LIST") && tokens[1].equals("USER")) {
+                        String email = tokens[2];
+                        try {
+                            app.listUser(email);
+                        } catch (UserDoesntExistException e) {}
+                    } else if(tokens[0].equals("ADD") && tokens[1].equals("FRIEND")) {
+                        String user = tokens[2];
+                        String friend = tokens[3];
+                        try {
+                            app.addFriend(user, friend);
+                        } catch (UserDoesntExistException | AlreadyFriendException e) {}
+                    } else if(tokens[0].equals("ADD") && tokens[1].equals("ACCOUNT")) {
+                        String email = tokens[2];
+                        String currency = tokens[3];
+                        try {
+                            app.addAccount(email, currency);
+                        } catch (AccountAlreadyExistsException e) {}
+                    } else if(tokens[0].equals("ADD") && tokens[1].equals("MONEY")) {
+                        String email = tokens[2];
+                        String currency = tokens[3];
+                        Double value = Double.parseDouble(tokens[4]);
+                        app.addMoney(email, currency, value);
+                    } else if(tokens[0].equals("LIST") && tokens[1].equals("PORTFOLIO")) {
+                        String email = tokens[2];
+                        try {
+                            app.listPortfolio(email);
+                        } catch(UserDoesntExistException e) {}
+                    } else if(tokens[0].equals("EXCHANGE") && tokens[1].equals("MONEY")) {
+                        String email = tokens[2];
+                        String sourceCurrency = tokens[3];
+                        String destinationCurrency = tokens[4];
+                        Double amount = Double.parseDouble(tokens[5]);
+                        try {
+                            app.exchangeMoney(email, sourceCurrency, destinationCurrency, amount);
+                        } catch(InsufficientAmountException e) {}
+                    } else if(tokens[0].equals("TRANSFER") && tokens[1].equals("MONEY")) {
+                        String email = tokens[2];
+                        String friendEmail = tokens[3];
+                        String currency = tokens[4];
+                        Double amount = Double.parseDouble(tokens[5]);
+                        try {
+                            app.transferMoney(email, friendEmail, currency, amount);
+                        } catch (InsufficentAmountTransferException | NotFriendsException e) {}
+                    } else if(tokens[0].equals("BUY") && tokens[1].equals("STOCKS")) {
+                        String email = tokens[2];
+                        String companyName = tokens[3];
+                        Integer noOfStocks = Integer.parseInt(tokens[4]);
+                        try{
+                            app.buyStocks(email, companyName, noOfStocks);
+                        } catch (InsufficientAmountStocksException e) {}
+                    } else if(tokens[0].equals("RECOMMEND") && tokens[1].equals("STOCKS")) {
+                        app.recommendStocks();
+                    } else if(tokens[0].equals("BUY") && tokens[1].equals("PREMIUM")) {
+                        String email = tokens[2];
+                        try {
+                            app.buyPremium(email);
+                        } catch (UserDoesntExistException | InsufficientPremiumException e) {}
                     }
-            } catch (FileNotFoundException e) {
-                System.out.println("An error occurred.");
+                    try {
+                        line = br.readLine();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+                fr.close();
+            } catch (IOException e) {
                 e.printStackTrace();
             }
             app.reset();

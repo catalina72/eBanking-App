@@ -1,6 +1,6 @@
 package org.poo.cb;
 
-public class EmailAlreadyExistsException extends Exception{
+public class EmailAlreadyExistsException extends Exception {
     public EmailAlreadyExistsException(String email) {
         System.out.println("User with " + email + " already exists");
     }
